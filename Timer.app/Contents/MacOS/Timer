@@ -1,0 +1,14 @@
+#!/bin/bash
+LOG=$HOME/.dummy
+echo a > $LOG
+dir=$(dirname "$0")
+echo b:$dir >> $LOG
+cd "$dir"
+echo "c1:$dir" >> $LOG
+cd "../Resources/Scripts"
+echo c:$(pwd) >> $LOG
+caffeinate /usr/local/bin/wish AppMain.tcl
+#/opt/homebrew/Cellar/tcl-tk/8.6.12_1/bin/wish8.6 AppMain.tcl
+echo d >> $LOG
+wait
+echo e >> $LOG
