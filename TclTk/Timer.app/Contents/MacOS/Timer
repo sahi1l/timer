@@ -1,14 +1,54 @@
 #!/bin/bash
-LOG=$HOME/.dummy
-echo a > $LOG
 dir=$(dirname "$0")
-echo b:$dir >> $LOG
 cd "$dir"
-echo "c1:$dir" >> $LOG
-cd "../Resources/Scripts"
-echo c:$(pwd) >> $LOG
-caffeinate /usr/local/bin/wish AppMain.tcl
-#/opt/homebrew/Cellar/tcl-tk/8.6.12_1/bin/wish8.6 AppMain.tcl
-echo d >> $LOG
-wait
-echo e >> $LOG
+LOG="$(pwd)/.dummy"
+LOG="/tmp/timerLOG"
+echo > $LOG
+echo "PATH=$PATH" >> $LOG
+echo "DIR=$dir" >> $LOG
+WISH=""
+LOCAL=0
+LOCALPATH="$(pwd)/wish"
+if [[ -e "$LOCALPATH" ]] ; then
+    WISH="$LOCALPATH"
+    echo "Using local" >> $LOG
+    LOCAL=1
+elif ! type -p wish; then #exists in path
+    out=$(type -p wish)
+    path=${out/wish is/}
+    echo "Found $path in path" >> $LOG
+    version=$(echo 'puts $tcl_version;exit' | $path)
+    if [[ version == "8.6" ]] ; then
+        WISH=$path
+    else
+        echo "But it was the wrong version" >> $LOG
+    fi
+fi
+echo "OK, now WISH=$WISH" >> $LOG
+if [[ -z "$WISH" ]] ; then
+    echo "...so I am going to look some other places" >> $LOG
+    for mypath in "/usr/local/bin" "/usr/bin" "/opt/local/bin" "/opt/homebrew/bin"; do
+        if [[ -e $mypath/wish ]] ; then
+            echo "I found $mypath/wish" >> $LOG
+            if [[ $(echo 'puts $tcl_version;exit' | $mypath/wish) == "8.6" ]] ; then
+                WISH=$mypath/wish
+                echo "And it was fine!" >> $LOG
+                break
+            else
+                echo "But it was the wrong version" >> $LOG
+            fi
+        fi
+    done
+fi
+echo "I finally decided!" >> $LOG
+echo "WISH=$WISH, LOCAL=$LOCAL" >> $LOG
+if [[ -n "$WISH" ]] ; then
+    if [[ $LOCAL == 0 ]] ; then
+        ln -fs "$WISH" "$LOCALPATH"
+    fi
+    cd "../Resources/Scripts"
+    caffeinate "$WISH" AppMain.tcl
+else
+    /usr/bin/osascript -e 'display dialog "This app requires that Tcl/Tk be installed." buttons {"OK"}'
+fi
+
