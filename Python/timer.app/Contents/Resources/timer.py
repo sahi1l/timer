@@ -6,6 +6,8 @@ from datetime import datetime as dt
 from datetime import timedelta as td
 import re
 root = tk.Tk()
+root.title("TIMER")
+root.geometry("+100+100")
 thetime = tk.StringVar()
 time = tk.Entry(root, width=5, font="Times 48", textvariable=thetime, justify="center")
 time.pack(padx=20,pady=20,side=tk.TOP)
